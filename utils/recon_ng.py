@@ -61,7 +61,7 @@ if __name__ == "__main__":
                                     scope=scope)
 
         reconscript = sw.get_recon_script()
-        reconscript = sw.get_report_script(out_dir=args.outdir)
+        reconscript += sw.get_report_script(out_dir=args.outdir)
 
         with open(reconscript_path, 'w') as scriptfile:
             scriptfile.write(reconscript)
