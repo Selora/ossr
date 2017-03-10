@@ -30,6 +30,7 @@ use recon/domains-hosts/ssl_san
 run
 #Check for hosts on the same IP
 use recon/hosts-hosts/bing_ip
+set RESTRICT False
 run
 #Resolve FQDN missing IP
 use recon/hosts-hosts/resolve
