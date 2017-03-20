@@ -17,59 +17,52 @@ if __name__ == "__main__":
                         type=str,
                         default='/usr/bin/python2',
                         help='Path to python2 install')
-    parser.add_argument('--scope_file', '-s', type=str,
-                        help='See supported entries in scope.py')
     parser.add_argument('--outdir', '-o',
                         default='recon_out',
                         help='Where recon-ng will dump the db in csv')
 
-    subparsers = parser.add_subparsers()
-    file_parser = subparsers.add_parser("reconscript")
-    file_parser.set_defaults(which='reconscript')
+    parser.add_argument('--recon_ng_script', type=argparse.FileType('r'),
+                            help='The recon-ng command file; you can record your own.'\
+                                 'If no file is provided, will just load info in workspace.'
+                        )
 
-    file_parser.add_argument('recon_ng_script',
-                            type=str,
-                            help='Path to recon-ng script file')
-
-    cli_parser = subparsers.add_parser("cli")
-    cli_parser.set_defaults(which='cli')
-
-    cli_parser.add_argument('--workspace', '-w', type=str,
-                        required=True,
-                        help='The recon-ng workspace name. \
-                        Works best with no spaces.')
-    cli_parser.add_argument('--companies', '-c', type=str,
+    parser.add_argument('--workspace', '-w', type=str,
+              required=True,
+              help='The recon-ng workspace name. \
+              Works best with no spaces.')
+    parser.add_argument('--scope_file', '-s', type=str,
+                        help='File containing FQDN,IP,netblocks,netranges,etc' \
+                        'See scope.py for what is supported')
+    parser.add_argument('--companies', '-c', type=str,
                         help='Company name in dbl.quotes, comma separated: "NiceCorp Inc.,SuperNiceCorp LLC."')
-    cli_parser.add_argument('--emails', '-e', type=str,
+    parser.add_argument('--emails', '-e', type=str,
                         help='Emails separated by commas ("asdf@test.com,test@corp.com")')
-    cli_parser.add_argument('template_script', type=argparse.FileType('r'),
-                        help='The recon-ng command file; you can record your own')
-    cli_parser.add_argument('--verbose', '-v', action='store_true',
-                            help='verbose flag')
 
     args = parser.parse_args()
 
-    script_file_path = ''
-    if args.which == 'cli':
-        reconscript_path = 'reconscript.txt'
-        scope = Scope.read_scope_from_file(args.scope_file)
+    reconscript_path = 'reconscript.txt'
+    scope = Scope.read_scope_from_file(args.scope_file)
 
-        sw = ScriptWriter(workspace=args.workspace,
-                                    companies=args.companies,
-                                    recon_ng_template_script=args.template_script.read().splitlines(),
-                                    contact_emails=args.emails,
-                                    scope=scope)
+    # Build the final recon-ng script which imports the scope and run commands in
+    # --recon_ng_script
+    if args.recon_ng_script:
+        recon_ng_script = args.recon_ng_script.read().splitlines()
+    else:
+        recon_ng_script = ''
 
-        reconscript = sw.get_recon_script()
-        reconscript += sw.get_report_script(out_dir=args.outdir)
+    sw = ScriptWriter(workspace=args.workspace,
+                      companies=args.companies,
+                      recon_ng_template_script=recon_ng_script,
+                      contact_emails=args.emails,
+                      scope=scope)
 
-        with open(reconscript_path, 'w') as scriptfile:
-            scriptfile.write(reconscript)
+    reconscript = sw.get_recon_script()
+    reconscript += sw.get_report_script(out_dir=args.outdir)
 
-        script_file_path = reconscript_path
+    with open(reconscript_path, 'w') as scriptfile:
+        scriptfile.write(reconscript)
 
-    elif args.which == 'reconscript':
-        script_file_path = args.recon_ng_script
+    script_file_path = reconscript_path
 
     launcher = Launcher(args.recon_ng_path, args.python2_path)
     launcher.run_script(script_file_path)

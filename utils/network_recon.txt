@@ -1,0 +1,91 @@
+#####################################
+#Get all netblocks
+
+#Enumerating companies
+use recon/netblocks-companies/whois_orgs
+run
+#Enumerating netblocks assoc. w/ companies
+use recon/companies-multi/whois_miner
+run
+
+#Do it again for completeness shake...
+
+#Enumerating companies
+use recon/netblocks-companies/whois_orgs
+run
+#Enumerating netblocks assoc. w/ companies
+use recon/companies-multi/whois_miner
+run
+
+#####################################
+#Get all hosts/fqdn
+
+#From what we have so far, get FQDNs
+use recon/netblocks-hosts/reverse_resolve
+run
+
+use recon/hosts-hosts/reverse_resolve
+run
+
+use recon/hosts-domains/migrate_hosts
+run
+
+#We have FQDN, find more FQDN
+
+use recon/domains-hosts/bing_domain_api
+#PUT SITES TO EXCLUDE HERE, WE DON'T WANT TO RECON AMAZON!!!:
+set SOURCE query SELECT DISTINCT domain FROM domains WHERE domain IS NOT NULL AND domain NOT LIKE '%amazonaws%' AND domain not like '%cloudfront%'
+run
+
+use recon/domains-hosts/netcraft
+run
+use recon/domains-hosts/ssl_san
+run
+
+use recon/domains-hosts/shodan_hostname
+set LIMIT 0
+run
+
+#Now that we have a fuckton of FQDN/hosts, go IP search
+use recon/hosts-hosts/resolve
+run
+
+# Do FQDN search by IP
+use recon/hosts-hosts/bing_ip
+set RESTRICT False
+run
+
+
+#Export FQDN as domain and restart over
+use recon/hosts-hosts/reverse_resolve
+run
+
+use recon/hosts-domains/migrate_hosts
+run
+
+#We have FQDN, find more FQDN
+
+use recon/domains-hosts/bing_domain_api
+#PUT SITES TO EXCLUDE HERE, WE DON'T WANT TO RECON AMAZON!!!:
+set SOURCE query SELECT DISTINCT domain FROM domains WHERE domain IS NOT NULL AND domain NOT LIKE '%amazonaws%' AND domain not like '%cloudfront%'
+run
+
+use recon/domains-hosts/netcraft
+run
+use recon/domains-hosts/ssl_san
+run
+
+use recon/domains-hosts/shodan_hostname
+set LIMIT 0
+run
+
+#Now that we have a fuckton of FQDN/hosts, go IP search
+use recon/hosts-hosts/resolve
+run
+
+# Do FQDN search by IP
+use recon/hosts-hosts/bing_ip
+set RESTRICT False
+run
+
+

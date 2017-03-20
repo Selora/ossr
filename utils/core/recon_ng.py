@@ -76,7 +76,7 @@ class ScriptWriter:
             'hosts'
         ]
         report_script = []
-        report_script += ['mkdir -p ' + out_dir]
+        report_script += ['\nmkdir -p ' + out_dir]
         for table in tables_to_dump:
             report_script += ['use reporting/csv']
             report_script += ['set TABLE ' + table]
